@@ -11,14 +11,12 @@ for i in screenshots:
     if os.path.getmtime(candidate_path) > os.path.getmtime(img_path):
         img_path = candidate_path
 
-
-# input(img_path)
-
+# Get the rounded greyscale colour at coord (x, y)
 def get_pix_val(im, coord):
     pixel = im.getpixel(coord)
     return round((pixel[0] + pixel[1] + pixel[2]) / (255 * 3))
 
-# format 32 bit int as hex
+# Format 32 bit int as hex
 def prettyhex32(a):
     raw = '{:08x}'.format(a)
     result = ''
@@ -26,31 +24,37 @@ def prettyhex32(a):
         result += raw[i] + raw[i + 1] + ' '
     return result
 
-
 with Image.open(img_path) as im:
-    # track each map pixel location using starting values in config.py
-    x_values = [STARTING_PIXEL[0]]
-    y_values = [STARTING_PIXEL[1]]
+    x_squares = []
+    y_squares = []
 
-    
-    y_guide = Y_INIT
-    last_val = get_pix_val(im, (X_GUIDE, Y_INIT))
-    while len(y_values) < 32:
-        if get_pix_val(im, (X_GUIDE, y_guide)) != last_val:
-            y_values.append(y_guide)
+    # Use the guide pixels to find the x and y coordinates
+    guide = STARTING_PIXEL[1]
+    last_val = get_pix_val(im, (STARTING_PIXEL[0], STARTING_PIXEL[1]))
+    while len(y_squares) < NUM_Y_SQUARES:
+        if get_pix_val(im, (STARTING_PIXEL[0], guide)) != last_val:
+            y_squares.append(guide)
             last_val = 1 - last_val
-        y_guide -= 1
+        guide -= 1
+    
+    last_val = get_pix_val(im, (STARTING_PIXEL[0], STARTING_PIXEL[1]))
+    guide = STARTING_PIXEL[0]
+    while len(x_squares) < NUM_X_SQUARES:
+        if get_pix_val(im, (guide, STARTING_PIXEL[1])) != last_val:
+            x_squares.append(guide)
+            last_val = 1 - last_val
+        guide -= 1
 
     # convert each pixel column to an integer
     # TODO: this should probably be a bytearray, but keeping it as int now is a bit easier
-    labels = 'abcdefgh'
-    labelx = 0
-    for x in X_VALS:
+    hnum_label = 0
+    for i in range(0, NUM_X_SQUARES, 2):
         mask = 0x80000000
         word = 0
-        for y in y_values:
+        x = x_squares[i]
+        for y in y_squares:
             word += mask * get_pix_val(im, (x, y))
             mask >>= 1
         
-        print('%s: %s' % (labels[labelx], prettyhex32(word)))
-        labelx += 1
+        print('h%d: %s' % (hnum_label, prettyhex32(word)))
+        hnum_label += 1
