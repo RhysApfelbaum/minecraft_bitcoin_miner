@@ -34,13 +34,13 @@ def prettyhex32(x: int) -> str:
 
 # SHA256 main functions
 def majority(x: int, y: int, z: int) -> int:
-    return (x & y) ^ (x & z) & (y & z)
+    return (x & y) ^ (x & z) ^ (y & z)
 
 def choice(x: int, y: int, z: int) -> int:
     return (x & y) ^ (~x & z)
 
 def rotate(x: int, bits: int) -> int:
-    return (x >> bits) | (x << (32 - bits))
+    return (x >> bits) | (x << (32 - bits)) 
 
 def sigma0(x: int) -> int:
     return rotate(x, 7) ^ rotate(x, 18) ^ (x >> 3)
@@ -77,23 +77,21 @@ def expand(w: list[int]) -> int:
 
 def compress(state: list[int], chunk: list[int], k: list[int]) -> list[int]:
     for i in range(64):
-
-        for x in state: print('round', i,':' , prettyhex32(x)) 
+        letters = 'abcdefgh'
+        for x in range(8): print('round', i, letters[x], ':' , prettyhex32(state[x])) 
         print()
-        for x in chunk:
-            input(prettyhex32(x))
         t1 = state[7] + cap_sigma1(state[4]) + choice(state[4], state[5], state[6]) + k[i] + expand(chunk)
         t2 = cap_sigma0(state[0]) + majority(state[0], state[1], state[2])
-        print(prettyhex32(t1))
+
         state[7] = state[6]
         state[6] = state[5]
         state[5] = state[4]
-        state[4] = state[3] + t1
+        state[4] = (state[3] + t1) & 0xffffffff
         state[3] = state[2]
         state[2] = state[1]
         state[1] = state[0]
-        state[0] = t1 + t2
-
+        state[0] = (t1 + t2) & 0xffffffff
+        input()
     return state
 
 def sha256(message: bytes) -> list[int]:
@@ -101,9 +99,9 @@ def sha256(message: bytes) -> list[int]:
     working_vars = state
     for chunk in prepare_chunks(message):
         working_vars = compress(working_vars, chunk, K)
-        state = [sum(i) for i in zip(state, working_vars)]
+        state = [0xffffffff & sum(i) for i in zip(state, working_vars)]
     return state
 
 digest = sha256(test_message)
 for i in digest:
-    print(prettyhex32(i))
+    print(prettyhex32(i & 0xffffffff))
