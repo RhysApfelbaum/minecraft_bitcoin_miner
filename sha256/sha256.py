@@ -126,6 +126,3 @@ def sha256(message: bytes) -> bytes:
         working_state = compress(working_state, chunk, K)
         state = [i[0] + i[1] for i in zip(working_state, state)]
     return struct.pack('>8I', *state)
-
-digest = sha256(b'')
-print(digest.hex())
