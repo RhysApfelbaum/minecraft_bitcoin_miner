@@ -58,3 +58,4 @@ with Image.open(img_path) as im:
         
         print('h%d: %s' % (hnum_label, prettyhex32(word)))
         hnum_label += 1
+

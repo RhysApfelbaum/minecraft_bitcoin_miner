@@ -22,7 +22,7 @@ K = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
 ]
 
-test_message = b''
+test_message = b'petal'
 
 # Format 32 bit int as hex
 def prettyhex32(x: int) -> str:
@@ -38,6 +38,10 @@ def majority(x: int, y: int, z: int) -> int:
 
 def choice(x: int, y: int, z: int) -> int:
     return (x & y) ^ (~x & z)
+
+# Add modulo 2^32
+def add(*x):
+    return sum(x) & 0xffffffff
 
 def rotate(x: int, bits: int) -> int:
     return (x >> bits) | (x << (32 - bits)) 
@@ -72,36 +76,41 @@ def prepare_chunks(raw_message: bytes) -> list[list[int]]:
     return result
 
 def expand(w: list[int]) -> int:
-    w.append(w[0] + sigma0(w[1]) + w[9] + sigma1(w[14]))
+    w.append(add(w[0], sigma0(w[1]), w[9], sigma1(w[14])))
     return w.pop(0)
 
 def compress(state: list[int], chunk: list[int], k: list[int]) -> list[int]:
     for i in range(64):
-        letters = 'abcdefgh'
-        for x in range(8): print('round', i, letters[x], ':' , prettyhex32(state[x])) 
-        print()
-        t1 = state[7] + cap_sigma1(state[4]) + choice(state[4], state[5], state[6]) + k[i] + expand(chunk)
-        t2 = cap_sigma0(state[0]) + majority(state[0], state[1], state[2])
+        t1 = add(
+            state[7],
+            cap_sigma1(state[4]),
+            choice(state[4], state[5], state[6]),
+            k[i],
+            expand(chunk)
+        )
+
+        t2 = add(
+            cap_sigma0(state[0]),
+            majority(state[0], state[1], state[2])
+        )
 
         state[7] = state[6]
         state[6] = state[5]
         state[5] = state[4]
-        state[4] = (state[3] + t1) & 0xffffffff
+        state[4] = add(state[3], t1)
         state[3] = state[2]
         state[2] = state[1]
         state[1] = state[0]
-        state[0] = (t1 + t2) & 0xffffffff
-        input()
+        state[0] = add(t1, t2)
     return state
 
-def sha256(message: bytes) -> list[int]:
+def sha256(message: bytes) -> bytes:
     state = INIT_STATE
-    working_vars = state
     for chunk in prepare_chunks(message):
+        working_vars = [i for i in state]
         working_vars = compress(working_vars, chunk, K)
-        state = [0xffffffff & sum(i) for i in zip(state, working_vars)]
-    return state
+        state = [add(*i) for i in zip(working_vars, state)]
+    return struct.pack('>8I', *state)
 
 digest = sha256(test_message)
-for i in digest:
-    print(prettyhex32(i & 0xffffffff))
+print(*('{:02x}'.format(i) for i in digest), end='')
