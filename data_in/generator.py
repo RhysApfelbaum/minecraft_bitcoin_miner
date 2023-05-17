@@ -1,52 +1,17 @@
-PREFIX = '''
-` up::
-press_state := 0
-return
-`::
-if (press_state)
-    return
-press_state := 1
+from struct import iter_unpack
 
-'''
+OUTPUT_PATH = r'minecraft_bitcoin_miner\data_in\page_sequence.txt'
+chunk = b'\x12\x34\xab\xcd'
 
-BLOCK_TEMPLATE = '''
-Send %d
-Send {LButton}
-Send {RButton}
-Sleep 200
-'''
+message_words = (i[0] for i in iter_unpack('>I', chunk))
 
-msg = [
-    b'\x00',
-    b'\x00',
-    b'\x00',
-    b'\xc0',
-    b'\x00',
-    b'\x00',
-    b'\xc0',
-    b'\x00',
-    b'\x00',
-    b'\x00',
-    b'\xc0',
-    b'\xc0',
-    b'\x00',
-    b'\xc0',
-    b'\x00',
-    b'\x00',
-]
+with open(OUTPUT_PATH, 'w') as f:
+    f.write(
+        ','.join(
+            ('{:x}'.format(word) for word in message_words)
+        )
+    )
+    for word in message_words:
+        f.write()
 
-msg_keys = ''
-high_mask = 0x80
-low_mask = 0x40
-print('Item slot sequence:', end=' ')
-for word in msg:
-    quartal_val = bool(high_mask & word[0]) * 2 + bool(low_mask & word[0]) * 1
-    inv_slot_num = quartal_val + 1
-    print(inv_slot_num, end=' ')
-    msg_keys += BLOCK_TEMPLATE % (quartal_val + 1)
     
-
-
-with open('data_in.ahk', 'w') as f:
-    f.write(PREFIX + msg_keys + 'return\n')
-
