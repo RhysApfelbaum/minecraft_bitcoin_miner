@@ -14,7 +14,7 @@ wordPosition := 1
     wordPosition := wordPosition + 8 
 }
 
-; This is some copypasted bullshit that converts a hex string into the correct integer
+; Converts a hex string into the correct integer
 HexToDec(hex) {
     dec := 0
     VarSetStrCapacity(&dec, 66)
