@@ -5,13 +5,13 @@ wordPosition := 1
 `:: {
     Global pageNumber
     Global wordPosition
-    If (wordPosition > StrLen(text) - 8) {
+    If (wordPosition >= StrLen(text)) {
         wordPosition := 1
     }
     Loop Parse SubStr(text, wordPosition, 8) {
         WriteNibble(HexToDec(A_LoopField), &pageNumber)
-        wordPosition := wordPosition + 8 
     }
+    wordPosition := wordPosition + 8 
 }
 
 ; This is some copypasted bullshit that converts a hex string into the correct integer

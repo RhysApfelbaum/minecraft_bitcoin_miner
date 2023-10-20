@@ -1,7 +1,6 @@
 import struct
-import hashlib
 
-# Unsigned integer with 32-bit overflow
+# Unsigned integer implementation with 32-bit overflow
 class Word(int):
     MASK = 0xffffffff
 
@@ -109,6 +108,7 @@ def compress(state: list[Word], chunk: list[Word], k: list[Word]) -> list[Word]:
         t1 = state[7] + cap_sigma1(state[4]) + choice(state[4], state[5], state[6]) + k[i] + expand(chunk)
         t2 = cap_sigma0(state[0]) + majority(state[0], state[1], state[2])
 
+        # Update the working variables
         state[7] = state[6]
         state[6] = state[5]
         state[5] = state[4]

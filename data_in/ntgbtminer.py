@@ -474,9 +474,11 @@ def standalone_miner(coinbase_message, address):
                 break
 
 
-if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: {:s} <coinbase message> <block reward address>".format(sys.argv[0]))
-        sys.exit(1)
+# if __name__ == "__main__":
+#     if len(sys.argv) < 3:
+#         print("Usage: {:s} <coinbase message> <block reward address>".format(sys.argv[0]))
+#         sys.exit(1)
 
-    standalone_miner(sys.argv[1].encode().hex(), sys.argv[2])
+#     standalone_miner(sys.argv[1].encode().hex(), sys.argv[2])
+
+print(hashlib.sha256(b'').digest().hex())

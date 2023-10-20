@@ -1,20 +1,29 @@
 from PIL import Image
 import os
-from config import *
+import json
+
+config_path = os.path.join(
+    os.path.dirname(__file__),
+    'config.json'
+)
+with open(config_path, 'r') as fp:
+    config = json.load(fp)
+start_x = config['starting_pixel_x'] 
+start_y = config['starting_pixel_y'] 
 
 # Find the most recent screenshot in screenshots folder
-screenshots = os.listdir(SCREENSHOT_PATH)
-img_path = os.path.join(SCREENSHOT_PATH, screenshots[0])
+screenshots = os.listdir(config['screenshots_path'])
+img_path = os.path.join(config['screenshots_path'], screenshots[0])
 
 for i in screenshots:
-    candidate_path = os.path.join(SCREENSHOT_PATH, i)
+    candidate_path = os.path.join(config['screenshots_path'], i)
     if os.path.getmtime(candidate_path) > os.path.getmtime(img_path):
         img_path = candidate_path
 
 # Get the rounded greyscale colour at coord (x, y)
 def get_pix_val(im, coord):
     pixel = im.getpixel(coord)
-    return round((pixel[0] + pixel[1] + pixel[2]) / (255 * 3))
+    return round(((pixel[0] + pixel[1] + pixel[2]) + 0) / (255 * 3))
 
 # Format 32 bit int as hex
 def prettyhex32(a):
@@ -29,33 +38,31 @@ with Image.open(img_path) as im:
     y_squares = []
 
     # Use the guide pixels to find the x and y coordinates
-    guide = STARTING_PIXEL[1]
-    last_val = get_pix_val(im, (STARTING_PIXEL[0], STARTING_PIXEL[1]))
-    while len(y_squares) < NUM_Y_SQUARES:
-        if get_pix_val(im, (STARTING_PIXEL[0], guide)) != last_val:
+    guide = start_y
+    last_val = get_pix_val(im, (start_x, start_y))
+    while len(y_squares) < config['num_y_squares']:
+        if get_pix_val(im, (start_x, guide)) != last_val:
             y_squares.append(guide)
             last_val = 1 - last_val
         guide -= 1
     
-    last_val = get_pix_val(im, (STARTING_PIXEL[0], STARTING_PIXEL[1]))
-    guide = STARTING_PIXEL[0]
-    while len(x_squares) < NUM_X_SQUARES:
-        if get_pix_val(im, (guide, STARTING_PIXEL[1])) != last_val:
+    last_val = get_pix_val(im, (start_x, start_y))
+    guide = start_x 
+    while len(x_squares) < config['num_x_squares']:
+        if get_pix_val(im, (guide, start_y)) != last_val:
             x_squares.append(guide)
             last_val = 1 - last_val
-        guide -= 1
+        guide += 1
 
     # convert each pixel column to an integer
     # TODO: this should probably be a bytearray, but keeping it as int now is a bit easier
     hnum_label = 0
-    for i in range(0, NUM_X_SQUARES, 2):
+    for i in range(0, config['num_x_squares'], 2):
         mask = 0x80000000
         word = 0
         x = x_squares[i]
         for y in y_squares:
             word += mask * get_pix_val(im, (x, y))
             mask >>= 1
-        
-        print('h%d: %s' % (hnum_label, prettyhex32(word)))
+        print('%s: %s' % ('abcdefgh'[hnum_label] ,prettyhex32(word)))
         hnum_label += 1
-
