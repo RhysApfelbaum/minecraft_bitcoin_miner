@@ -32,4 +32,4 @@ This is a quick implementation of SHA256 in Python. I wrote this to make sure I 
 
 ## hexifier.js
 
-For debugging we've been making use of this website <https://sha256algorithm.com/>. However, it displays everything in binary. To make it easier to compare 32-bit numbers, I wrote a little JavaScript function that can convert all the binary numbers into hexidecimal. This can interfere somewhat with the functionality, but as long as you navigate to the stage in the algorithm and then call the function, all the results should be accurate.
+For debugging we've been making use of this website <https://sha256algorithm.com/>. However, it displays everything in binary. To make it easier to compare 32-bit numbers, I wrote a little JavaScript function that can convert all the binary numbers into hexadecimal. This can interfere somewhat with the functionality, but as long as you navigate to the stage in the algorithm and then call the function, all the results should be accurate.

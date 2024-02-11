@@ -5,13 +5,17 @@ wordPosition := 1
 `:: {
     Global pageNumber
     Global wordPosition
-    If (wordPosition >= StrLen(text)) {
-        wordPosition := 1
+
+    Loop {
+        If (wordPosition >= StrLen(text)) {
+            Return
+        }
+        Loop Parse SubStr(text, wordPosition, 8) {
+            WriteNibble(HexToDec(A_LoopField), &pageNumber)
+            PreciseSleep(50)
+        }
+        wordPosition := wordPosition + 8
     }
-    Loop Parse SubStr(text, wordPosition, 8) {
-        WriteNibble(HexToDec(A_LoopField), &pageNumber)
-    }
-    wordPosition := wordPosition + 8 
 }
 
 ; Converts a hex string into the correct integer
@@ -61,6 +65,9 @@ WriteNibble(value, &pageNumber) {
 
         ; Taking the book resets the page number to 1
         pageNumber := 1
+
+        ; Extra sleep for consistency
+        PreciseSleep(50)
     } Else {
         offset := value - pageNumber
 
