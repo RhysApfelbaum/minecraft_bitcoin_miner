@@ -5,16 +5,13 @@ wordPosition := 1
 `:: {
     Global pageNumber
     Global wordPosition
-
     Loop {
-        If (wordPosition >= StrLen(text)) {
+        If (wordPosition > StrLen(text)) {
             Return
         }
-        Loop Parse SubStr(text, wordPosition, 8) {
-            WriteNibble(HexToDec(A_LoopField), &pageNumber)
-            PreciseSleep(50)
-        }
-        wordPosition := wordPosition + 8
+        WriteNibble(HexToDec(SubStr(text, wordPosition, 1)), &pageNumber)
+        PreciseSleep(50)
+        wordPosition := wordPosition + 1
     }
 }
 
@@ -39,57 +36,25 @@ PreciseSleep(milliseconds) {
 ; Reading a book in a lectern and pressing tab twice selects the "Take Book" button
 ; 
 WriteNibble(value, &pageNumber) {
-    If (value = 0) {
-
-        ; Move the page to update the write signal
-        If (pageNumber = 15) {
+    offset := value - pageNumber
+    If (offset = 0) {
+        ; Already on the right page, so we just need to update the write signal
+        ; by flipping the page forward and backward (or backward and forward it it's page 15)
+        If (value = 15) {
             Send "{PgUp}"
+            Send "{PgDn}"
         } Else {
             Send "{PgDn}"
+            Send "{PgUp}"
         }
-
-        ; Take the book off the lectern
-        Send "{Enter}"
-        PreciseSleep(100)
-
-        ; Place the book back on the lectern
-        Send "{RButton}"
-
-        ; Edit the book
-        Send "{RButton}"
-        PreciseSleep(100)
-
-        ; Navigate to the "Take Book" button
-        Send "{Tab}"
-        Send "{Tab}"
-
-        ; Taking the book resets the page number to 1
-        pageNumber := 1
-
-        ; Extra sleep for consistency
-        PreciseSleep(50)
+    } Else If (offset > 0) {
+        Loop offset
+            Send "{PgDn}"
     } Else {
-        offset := value - pageNumber
-
-        If (offset = 0) {
-            ; Already on the right page, so we just need to update the write signal
-            ; by flipping the page forward and backward (or backward and forward it it's page 15)
-            If (value = 15) {
-                Send "{PgUp}"
-                Send "{PgDn}"
-            } Else {
-                Send "{PgDn}"
-                Send "{PgUp}"
-            }
-        } Else If (offset > 0) {
-            Loop offset
-                Send "{PgDn}"
-        } Else {
-            ; Offset is negative
-            Loop -offset
-                Send "{PgUp}"
-        }
-        pageNumber := value
-        PreciseSleep(200)
+        ; Offset is negative
+        Loop -offset
+            Send "{PgUp}"
     }
+    pageNumber := value
+    PreciseSleep(200)
 }

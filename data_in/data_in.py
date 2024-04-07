@@ -1,4 +1,4 @@
-from pyautogui import press, click
+from pyautogui import press, click, keyDown, keyUp
 from time import sleep
 from keyboard import wait, add_hotkey
 
@@ -66,12 +66,11 @@ def write_nibble(value):
     sleep(0.2)
 
 
-
 def key_sequence():
     with open(r'C:\Users\rhysl\Documents\Code\minecraft_bitcoin\minecraft_bitcoin_miner\data_in\page_sequence.txt') as f:
-        for nibble in string_to_nibbles(f.read()):
-            print('%x' % nibble, end="")
-    print()
+        # for nibble in string_to_nibbles(f.read()):
+        keyDown('alt')
+        keyDown('pagedown')
 
 add_hotkey(HOTKEY, key_sequence)
 wait()
